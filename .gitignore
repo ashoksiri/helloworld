@@ -1,0 +1,4 @@
+.idea
+client/node_modules
+templates
+*/__pycache__
