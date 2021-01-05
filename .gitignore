@@ -2,3 +2,4 @@
 client/node_modules
 templates
 */__pycache__
+__pycache__
