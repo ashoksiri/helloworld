@@ -8,7 +8,7 @@ RUN cd /opt/app/client && npm i && npm run build && cd .. && rm -rf client
 FROM python:3.6-alpine3.11
 COPY --from=BASE /opt/app /opt/app/
 WORKDIR /opt/app/
-RUN apk add --no-cache bash gcc libc-dev linux-headers \
+RUN apk add --no-cache bash gcc libc-dev linux-headers mariadb-connector-c-dev postgresql-dev \
     && cd /opt/app \
     && pip install --no-cache-dir -r requirements.txt \
     && apk del gcc libc-dev linux-headers \

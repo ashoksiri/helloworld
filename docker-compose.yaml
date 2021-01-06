@@ -1,0 +1,44 @@
+version: "2.1"
+
+networks:
+  sample:
+#volumes:
+#  postgres-data:
+
+services:
+  helloworld:
+    image: ashoksiri/helloworld
+    environment:
+      - DEBUG=True
+      - DATABASE_HOST=db
+      - DB_DATABASE=sample
+      - DB_USER=sample
+      - DB_PASSWORD=pass
+    working_dir: /opt/app
+    command: >
+      bash -c "python manage.py migrate && uwsgi --ini uwsgi.ini --static-map /static=/opt/app/templates/static"
+    ports:
+    - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: "postgres:12-alpine"
+    container_name: postgres-db
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_ROOT_PASSWORD=pass
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=sample
+      - POSTGRES_DB=sample
+      - POSTGRES_INITDB_ARGS="--encoding=UTF8"
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sample"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
