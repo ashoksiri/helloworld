@@ -1,6 +1,8 @@
 ﻿const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const path = require('path');
 const mode = process.env.NODE_ENV !== 'production';
@@ -34,7 +36,17 @@ module.exports = {
             // workaround for warning: System.import() is deprecated and will be removed soon. Use import() instead.
             {
                 test: /[\/\\]@angular[\/\\].+\.js$/,
-                parser: { system: true }
+                parser: {system: true}
+            },
+            {
+                test: /\.(jpg|jpeg|gif|png)$/,
+                exclude: /node_modules/,
+                loader: 'url-loader?limit=1024&name=images/[name].[ext]'
+            },
+            {
+                test: /\.(woff|woff2|eot|ttf|svg)$/,
+                exclude: /node_modules/,
+                loader: 'url-loader?limit=1024&name=fonts/[name].[ext]'
             }
         ]
     },
@@ -42,7 +54,7 @@ module.exports = {
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: './src/index.html',
-            filename: './index.html',
+            filename: './index.html'
         }),
         new webpack.DefinePlugin({
             // global app config object
@@ -55,7 +67,27 @@ module.exports = {
         new webpack.ContextReplacementPlugin(
             /\@angular(\\|\/)core(\\|\/)fesm5/,
             path.resolve(__dirname, 'src')
-        )
+        ),
+        new MiniCssExtractPlugin({
+            // Options similar to the same options in webpackOptions.output
+            // both options are optional
+            filename: mode ? '[name].css' : '[name].[hash].css',
+            chunkFilename: mode ? '[id].css' : '[id].[hash].css',
+        }),
+        new CopyWebpackPlugin(
+            {
+                patterns: [
+                    {
+                        from:  "static/**" ,
+                        // to: `${path.resolve(__dirname, '../', 'templates', 'static')}`,
+                        to({ context, absoluteFilename }) {
+                            const dirName = path.dirname(absoluteFilename).split(path.sep).pop();
+                            return Promise.resolve(`${path.resolve(__dirname,'../', 'templates','static')}/${dirName}/[name].[ext]`);
+                        },
+                    }
+                ]
+            },
+        ),
     ],
     optimization: {
         splitChunks: {
@@ -72,10 +104,10 @@ module.exports = {
         runtimeChunk: true
     },
     performance: {
-      hints: false
+        hints: false
     },
-    output:{
-        path: path.resolve( __dirname,'../', "templates"),
+    output: {
+        path: path.resolve(__dirname, '../', "templates"),
         filename: './static/[name].bundle.js'
     },
     devServer: {
